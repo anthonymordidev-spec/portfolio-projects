@@ -1,0 +1,47 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #000;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.container {
+  text-align: center;
+}
+
+#timer {
+  font-size: 8rem;
+  font-weight: 300;
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+  user-select: none;
+}
+
+#startStop {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  border: none;
+  background: #30d158;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#startStop:hover {
+  transform: scale(1.05);
+}
+
+#startStop:active {
+  transform: scale(0.95);
+}

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Connect 4</title>
+
+    <link rel="stylesheet" href="c4.css" />
+  </head>
+
+  <body>
+    <!-- Animated Background -->
+    <div class="background"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+      <!-- Title -->
+      <h1 class="title">CONNECT 4</h1>
+
+      <!-- Controls -->
+      <div class="controls">
+        <div class="control-group">
+          <label>Game Mode</label>
+
+          <select id="gameMode">
+            <option value="2player">Two Players</option>
+            <option value="computer">Computer</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Difficulty</label>
+
+          <select id="difficulty">
+            <option value="1">Level 1 - Easy</option>
+            <option value="2">Level 2 - Normal</option>
+            <option value="3">Level 3 - Hard</option>
+            <option value="4">Level 4 - Expert</option>
+            <option value="5">Level 5 - Impossible</option>
+          </select>
+        </div>
+
+        <button id="restartBtn">Restart Game</button>
+      </div>
+
+      <!-- Player Turn -->
+      <div id="turnDisplay">Player 1's Turn</div>
+
+      <!-- Game Board -->
+      <div id="board"></div>
+
+      <!-- Winner Message -->
+      <div id="winnerMessage"></div>
+    </div>
+
+    <!-- Victory Particles -->
+    <canvas id="particleCanvas"></canvas>
+
+    <script src="c4.js"></script>
+  </body>
+</html>
