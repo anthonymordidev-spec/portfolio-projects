@@ -113,15 +113,19 @@ input,textarea{font-size:max(16px,1rem);-webkit-user-select:text;user-select:tex
  .chat-input-area{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
 }
 @media(prefers-reduced-motion:reduce){.move-sprite,.capture-sprite{transition:none!important}}
+.room-strip .right{justify-content:flex-end;flex-wrap:wrap}
+.match-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.match-actions .btn{white-space:nowrap}
+.cta-icon{width:14px;height:14px;opacity:.92}
 </style></head>
 <body><div id="app">
 <header><a class="wordmark" href="/" aria-label="Parley home"><span class="brand-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h18M6 17h12M7 17 8 8l4-5 4 5 1 9M10 12h4"/></svg></span>PARLEY<span class="brand-accent">.</span></a><div class="header-right"><span class="server-dot" id="connection"><i></i><span>REAL-TIME CHESS</span></span><button id="soundBtn" class="head-btn sound-switch" title="Toggle sound" aria-label="Toggle sound" aria-pressed="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path class="sound-wave" d="M15.5 8.5a5 5 0 0 1 0 7M18 5a10 10 0 0 1 0 14"/></svg></button><button id="exitBtn" class="head-btn hidden">Leave room</button></div></header>
 <main id="landing">
  <section><div class="hero-tags"><span>Team vs team</span><span>Live consensus</span><span>2–8 players</span></div><h1 class="hero-title">One board.<br>Many minds.<br><em>One move.</em></h1><p class="hero-copy">Chess becomes a team sport. Debate the possibilities in your private team chat, choose a move together, and watch the board react only when every teammate agrees.</p><div class="hero-steps"><span class="step"><strong>1</strong> Form two teams</span><span class="step"><strong>2</strong> Discuss & vote</span><span class="step"><strong>3</strong> Move in unison</span></div></section>
- <aside class="landing-side"><div class="lobby-card"><div class="eyebrow">Start your table</div><h2>Make your next move together.</h2><p>Invite your people. Everyone gets their own screen and a vote.</p><label class="field"><span>Your display name</span><input id="playerName" maxlength="22" placeholder="How should your team call you?" autocomplete="nickname" /></label><div class="field"><span>Number of players</span><div class="room-sizes" id="roomSizes"><button class="active" data-size="2">2<small>1v1</small></button><button data-size="4">4<small>2v2</small></button><button data-size="6">6<small>3v3</small></button><button data-size="8">8<small>4v4</small></button></div></div><button id="createBtn" class="btn btn-primary" style="width:100%">Create a game <span aria-hidden="true">↗</span></button><div class="join-divider">ALREADY HAVE A ROOM?</div><div class="lobby-actions"><input id="joinCode" class="join-code" maxlength="6" placeholder="ROOM CODE" aria-label="Room code" style="background:#151e19;border:1px solid #435146;color:white;border-radius:10px;padding:0 13px;width:100%;height:46px"/><button id="joinBtn" class="btn btn-secondary">Join room</button></div></div><div class="mini-card"><div class="mini-icon"><svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2l7 4v5c0 5-3 8-7 11-4-3-7-6-7-11V6l7-4zM9 12l2 2 4-4"/></svg></div><div><strong>Fair by design.</strong><br>Every legal move and team vote is verified by the server.</div></div></aside>
+ <aside class="landing-side"><div class="lobby-card"><div class="eyebrow">Start your table</div><h2>Make your next move together.</h2><p>Invite your people. Everyone gets their own screen and a vote.</p><label class="field"><span>Your display name</span><input id="playerName" maxlength="22" placeholder="How should your team call you?" autocomplete="nickname" /></label><div class="field"><span>Number of players</span><div class="room-sizes" id="roomSizes"><button class="active" data-size="2">2<small>1v1</small></button><button data-size="4">4<small>2v2</small></button><button data-size="6">6<small>3v3</small></button><button data-size="8">8<small>4v4</small></button></div></div><button id="createBtn" class="btn btn-primary" style="width:100%">Create a game <svg class="cta-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11 11 5"/><path d="M6 5h5v5"/></svg></button><div class="join-divider">ALREADY HAVE A ROOM?</div><div class="lobby-actions"><input id="joinCode" class="join-code" maxlength="6" placeholder="ROOM CODE" aria-label="Room code" style="background:#151e19;border:1px solid #435146;color:white;border-radius:10px;padding:0 13px;width:100%;height:46px"/><button id="joinBtn" class="btn btn-secondary">Join room</button></div></div><div class="mini-card"><div class="mini-icon"><svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2l7 4v5c0 5-3 8-7 11-4-3-7-6-7-11V6l7-4zM9 12l2 2 4-4"/></svg></div><div><strong>Fair by design.</strong><br>Every legal move and team vote is verified by the server.</div></div></aside>
 </main>
 <main id="room" class="hidden">
- <div class="room-strip"><div class="left"><button id="roomCode" class="room-code" title="Copy invitation code">------</button><div class="room-identity"><strong id="roomLabel">Waiting room</strong><span id="roomSubtitle">Invite your team to join</span></div></div><div class="right"><button id="shareBtn" class="btn btn-secondary btn-small">Copy invite</button><button id="flipBtn" class="btn btn-ghost btn-small" title="Rotate board">Flip</button></div></div>
+ <div class="room-strip"><div class="left"><button id="roomCode" class="room-code" title="Copy invitation code">------</button><div class="room-identity"><strong id="roomLabel">Waiting room</strong><span id="roomSubtitle">Invite your team to join</span></div></div><div class="right"><div id="matchActions" class="match-actions hidden"><button id="drawBtn" class="btn btn-secondary btn-small">Offer draw</button><button id="resignBtn" class="btn btn-ghost btn-small">Resign</button></div><button id="shareBtn" class="btn btn-secondary btn-small">Copy invite</button><button id="flipBtn" class="btn btn-ghost btn-small" title="Rotate board">Flip</button></div></div>
  <div class="main-grid">
   <aside id="rosterPanel" class="panel desktop-roominfo"><div class="panel-body"><div class="panel-head"><div class="panel-title">At the table</div><span class="pill" id="playerCount">0/4</span></div><div class="team-card" id="teamWhite"><div class="team-heading"><i class="dot"></i><strong>WHITE TEAM</strong><span id="whiteCount">0</span></div><div class="roster-list" id="whiteList"></div></div><div class="team-card" id="teamBlack"><div class="team-heading"><i class="dot black"></i><strong>BLACK TEAM</strong><span id="blackCount">0</span></div><div class="roster-list" id="blackList"></div></div><div class="guidance"><b>THE AGREEMENT RULE</b><br>Pick a move. Each teammate must confirm the <em>same</em> square before the board will change. Disagreement means the move stays pending.</div><div class="move-history"><div class="panel-head"><span class="panel-title">Game notation</span><button class="head-btn" id="copyMoves" title="Copy move list">Copy</button></div><div class="history-list" id="history"></div></div></div></aside>
   <section class="game-center"><div class="turn-bar"><div class="turn-info"><div id="turnCircle" class="turn-circle"></div><div><strong id="turnHeadline">Waiting for players</strong><small id="turnCaption">Invite your teammates to begin</small></div></div><span id="moveNo" class="turn-mini">MOVE 01</span></div>
@@ -164,7 +168,7 @@ function connect(action,extra={}){
  socket.addEventListener('open',()=>{connectionAttempts=0;connectionState(true);const req={type:action,token,name:localStorage.getItem('parley-name')||'Player',...extra};socket.send(JSON.stringify(req))});
  socket.addEventListener('message',e=>{
   let m;try{m=JSON.parse(e.data)}catch{return}
-  if(m.type==='joined'){paintedBoardKey='';lastFenRendered='';drawBoard.lastAnimatedMove=null;lastRosterKey='';lastHistoryKey='';chatLast='';document.body.classList.add('room-mode');code=m.code;room=code;history.replaceState(null,'',`?room=${code}`);$('landing').classList.add('hidden');$('room').classList.remove('hidden');$('exitBtn').classList.remove('hidden');$('roomCode').textContent=code}
+  if(m.type==='joined'){paintedBoardKey='';lastFenRendered='';drawBoard.lastAnimatedMove=null;lastRosterKey='';lastHistoryKey='';chatLast='';document.body.classList.add('room-mode');code=m.code;room=code;history.replaceState(null,'',`?room=${code}`);$('landing').classList.add('hidden');$('room').classList.remove('hidden');$('roomCode').textContent=code}
   if(m.type==='state'){lastState=m;me=m.me;room=m.room;proposed=m.proposals?.find(p=>p.id===me.id)||null;render(m)}
   if(m.type==='error'){toast(m.message,true);if(!code && action==='join'){clearTimeout(connectionTimer);socket.close();connectionState(false)}}
   if(m.type==='notice')toast(m.message,true);
@@ -177,10 +181,46 @@ $('roomSizes').addEventListener('click',e=>{let el=e.target.closest('[data-size]
 $('createBtn').onclick=()=>{if(!getName())return;connect('create',{capacity})};
 $('joinBtn').onclick=()=>{if(!getName())return;const c=$('joinCode').value.trim().toUpperCase();if(!/^[A-Z2-9]{6}$/.test(c)){toast('Enter your six-character room code.',true);return}connect('join',{code:c})};
 $('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('joinBtn').click()});
-$('exitBtn').onclick=()=>{if(!confirm('Leave this room? You can rejoin it using the invite link.'))return;clearTimeout(connectionTimer);if(ws){ws.onclose=null;ws.close()}ws=null;code=null;room=null;me=null;lastState=null;paintedBoardKey='';lastFenRendered='';drawBoard.lastAnimatedMove=null;queuedMove=null;history.replaceState(null,'',location.pathname);$('room').classList.add('hidden');$('landing').classList.remove('hidden');document.body.classList.remove('room-mode');window.scrollTo(0,0);$('exitBtn').classList.add('hidden');closePanel();connectionState(false)};
+function leaveRoomUI(){clearTimeout(connectionTimer);if(ws){ws.onclose=null;ws.close()}ws=null;code=null;room=null;me=null;lastState=null;paintedBoardKey='';lastFenRendered='';drawBoard.lastAnimatedMove=null;queuedMove=null;history.replaceState(null,'',location.pathname);$('room').classList.add('hidden');$('landing').classList.remove('hidden');document.body.classList.remove('room-mode');window.scrollTo(0,0);$('exitBtn').classList.add('hidden');$('matchActions').classList.add('hidden');closePanel();connectionState(false)}
+$('exitBtn').onclick=()=>{if(lastState?.phase==='playing'){toast('Active games use Resign or Offer draw. Closing the tab will only disconnect your seat.',true);return}if(!confirm(lastState?.phase==='ended'?'Leave this table and return home?':'Leave this lobby?'))return;leaveRoomUI()};
 $('roomCode').onclick=()=>copyText(room||'');$('shareBtn').onclick=()=>copyText(`${location.origin}/?room=${room}`);
 async function copyText(text){try{await navigator.clipboard.writeText(text);toast('Copied to clipboard.')}catch{toast(text)}}
 $('startBtn').onclick=()=>{audioReady();send('start');playEffect('start')};
+function updateRoomActions(s){
+ const actions=s.matchActions||{}, team=s.me.team, other=team==='w'?'b':'w', teamSize=s.capacity/2;
+ const matchBar=$('matchActions'), drawBtn=$('drawBtn'), resignBtn=$('resignBtn'), exitBtn=$('exitBtn');
+ const playing=s.phase==='playing';
+ matchBar.classList.toggle('hidden',!playing);
+ exitBtn.classList.toggle('hidden',playing);
+ exitBtn.textContent=s.phase==='ended'?'Leave table':'Leave lobby';
+ if(!playing)return;
+ const offeredBy=actions.drawOfferedBy||null;
+ const myDrawVotes=(actions.drawVotes&&actions.drawVotes[team])||0;
+ const theirDrawVotes=(actions.drawVotes&&actions.drawVotes[other])||0;
+ const myResignVotes=(actions.resignVotes&&actions.resignVotes[team])||0;
+ const myDrawVote=!!actions.myDrawVote, myResignVote=!!actions.myResignVote;
+ const drawNeeds=teamSize;
+ const facingOffer=offeredBy===other;
+ if(facingOffer){
+   drawBtn.textContent=myDrawVote?'Accept draw '+myDrawVotes+'/'+drawNeeds:'Accept draw';
+   drawBtn.className='btn btn-secondary btn-small';
+   drawBtn.onclick=()=>{audioReady();if(send('accept_draw'))playEffect('confirm')};
+   drawBtn.disabled=false;
+   drawBtn.title='Opponent team offered a draw. '+myDrawVotes+'/'+drawNeeds+' of your team have accepted.';
+ }else{
+   const label=offeredBy===team?'Draw offered':'Offer draw';
+   drawBtn.textContent=myDrawVote?label+' '+myDrawVotes+'/'+drawNeeds:label;
+   drawBtn.className='btn btn-secondary btn-small';
+   drawBtn.onclick=()=>{audioReady();if(send('offer_draw'))playEffect('confirm')};
+   drawBtn.disabled=false;
+   drawBtn.title=offeredBy===team?'Waiting for the other team to accept. '+theirDrawVotes+'/'+drawNeeds+' accepted on their side.':'Offer a drawn result if your whole team agrees.';
+ }
+ resignBtn.textContent=myResignVote?'Resign '+myResignVotes+'/'+drawNeeds:'Resign';
+ resignBtn.className='btn btn-ghost btn-small';
+ resignBtn.disabled=false;
+ resignBtn.title='Your whole team must confirm resignation before the game ends.';
+ resignBtn.onclick=()=>{audioReady();if(!confirm(myResignVote?'Withdraw your resignation vote?':'Vote to resign for your team?'))return;if(send('resign'))playEffect('error')};
+}
 $('flipBtn').onclick=()=>{orientation=orientation==='w'?'b':'w';queuedMove=null;playEffect('select');if(lastState)drawBoard(lastState)};
 $('confirmBtn').onclick=()=>{if(!lastState)return;audioReady();const current=proposed;if(current?.confirmed){send('unconfirm');return}if(!current?.uci){toast('Select a legal move on the board first.',true);return}if(send('confirm'))playEffect('confirm')};
 $('changeBtn').onclick=()=>{selected=null;send('unconfirm');if(lastState)drawBoard(lastState)};
@@ -280,7 +320,7 @@ let chatLast='';
 function renderChat(s){const messages=$('chatMessages');const sig=(s.chats||[]).map(x=>x.id).join(',');if(sig===chatLast)return;chatLast=sig;messages.replaceChildren();if(!(s.chats||[]).length){const el=document.createElement('div');el.className='chat-empty';el.innerHTML='<div class="bubble-icon">✦</div><strong>Make the call together.</strong><br>Discuss strategies here before you confirm a move.';messages.append(el);return}s.chats.forEach(msg=>{const mine=msg.person===s.me.id;const div=document.createElement('div');div.className='chat-item'+(mine?' mine':'');div.innerHTML=`<div class="who">${escapeHTML(mine?'You':msg.name)}</div><div class="bubble"></div>`;div.querySelector('.bubble').textContent=msg.text;messages.append(div)});messages.scrollTop=messages.scrollHeight;if(!document.querySelector('.chat-panel.open')){unread++;$('chatUnread').textContent=unread>0?' · '+unread:''}}
 function render(s){
  document.body.classList.add('room-mode');
- $('landing').classList.add('hidden');$('room').classList.remove('hidden');$('exitBtn').classList.remove('hidden');$('roomCode').textContent=s.room;
+ $('landing').classList.add('hidden');$('room').classList.remove('hidden');$('roomCode').textContent=s.room;updateRoomActions(s);
  const white=s.me.team==='w';$('roomLabel').textContent=(white?'White':'Black')+' team';$('roomSubtitle').textContent=`${s.capacity/2} vs ${s.capacity/2} · ${s.phase==='lobby'?'Waiting room':s.phase==='playing'?'Live match':'Game complete'}`;
  renderRoster(s);renderHistory(s);if(chatMode==='chat'){$('chatTeam').textContent=(white?'White':'Black')+' team chat';renderChat(s)} else renderPanel(chatMode,s);
  $('waiting').classList.toggle('hidden',s.phase!=='lobby');$('board').parentElement.classList.toggle('hidden',s.phase==='lobby');$('decision').classList.toggle('hidden',s.phase==='lobby');
@@ -300,7 +340,7 @@ function renderDecision(s){
  const title=$('decisionChoice'),eyebrow=$('decisionEyebrow'),detail=$('decisionDetail'),btn=$('confirmBtn'),change=$('changeBtn');
  change.classList.add('hidden');
  if(s.phase==='ended'){
-   eyebrow.textContent='Match finished';title.textContent=s.terminal?.[1]||'Good game.';detail.textContent='Rematch begins when every player votes to play again.';
+   eyebrow.textContent='Match finished';title.textContent=s.terminal?.[1]||'Good game.';detail.textContent=(s.terminal?.[0]==='agreed_draw'?'The draw was accepted by both teams. ':'')+'Rematch begins when every player votes to play again.';
    btn.disabled=false;btn.textContent=s.rematchMe?'Cancel rematch vote':`Rematch · ${s.rematchReady}/${s.capacity}`;btn.onclick=()=>{audioReady();if(send('rematch'))playEffect('confirm')};
  }else if(!mine){eyebrow.textContent='Opponent deliberation';title.textContent='Your move is coming.';detail.textContent='Watch the board. Their choices remain private until the move is agreed.';btn.disabled=true;btn.textContent='Waiting';btn.onclick=null;
  }else{const disagreement=s.consensus.distinct>1;eyebrow.textContent=confirmed?'You have confirmed':valid?'Proposed move':'Your team to play';title.textContent=valid?proposed.san:'Select a legal move';detail.textContent=disagreement?'Teammates selected different moves. Discuss and align.':confirmed?'Waiting for teammates to confirm the same move.':valid?'Press confirm to cast your vote. Select another piece to change.':'Tap a piece, then a highlighted destination.';

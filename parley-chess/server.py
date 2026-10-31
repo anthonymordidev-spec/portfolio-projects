@@ -50,6 +50,7 @@ class Room:
         self.players={};self.sockets={};self.phase='lobby';self.game=Position.from_fen()
         self.positions=[self.game];self.history=[];self.last_move=None
         self.proposals={};self.chats={'w':deque(maxlen=90),'b':deque(maxlen=90)}
+        self.draw_offer=None;self.draw_votes={'w':set(),'b':set()};self.resign_votes={'w':set(),'b':set()}
         self.round=0;self.terminal=None;self.rematch=set();self.created=now();self.active=now()
         self.add(host_token,host_name)
 
@@ -74,6 +75,14 @@ class Room:
         return {'needed':len(teammates),'confirmed':len(confirmed),'distinct':len({p['uci'] for _,p in confirmed}),
                 'online':sum(t in self.sockets for t in teammates)}
 
+    def team_tokens(self,team):
+        return [t for t,p in self.players.items() if p['team']==team]
+
+    def clear_fair_play_actions(self):
+        self.draw_offer=None
+        self.draw_votes={'w':set(),'b':set()}
+        self.resign_votes={'w':set(),'b':set()}
+
     def snapshot(self,token):
         me=self.players[token];team=me['team'];turn='w' if self.game.turn==1 else 'b'
         playing=self.phase=='playing' and turn==team
@@ -86,12 +95,23 @@ class Room:
             proposals=[{'id':self.players[t]['id'],'name':self.players[t]['name'],'uci':self.proposals[t]['uci'] if t in self.proposals else None,
                         'san':self.proposals[t]['san'] if t in self.proposals else None,
                         'confirmed':self.proposals[t]['confirmed'] if t in self.proposals else False} for t,p in self.players.items() if p['team']==team]
+        other='b' if team=='w' else 'w'
         return {'type':'state','room':self.code,'capacity':self.capacity,'phase':self.phase,'host':token==self.host,
                 'me':{'id':me['id'],'name':me['name'],'team':team},'roster':self.public_roster(),
                 'fen':self.game.fen(),'turn':turn,'round':self.round,'legal':possible,'proposals':proposals,
                 'consensus':self.consensus(turn),'lastMove':self.last_move,'history':self.history[-60:],
                 'chats':list(self.chats[team]),'terminal':self.terminal,'rematchReady':len(self.rematch),
-                'rematchMe':token in self.rematch,'note':'Agree on the same legal move, then every teammate confirms.'}
+                'rematchMe':token in self.rematch,
+                'matchActions':{
+                    'drawOfferedBy':self.draw_offer,
+                    'drawVotes':{'w':len(self.draw_votes['w']),'b':len(self.draw_votes['b'])},
+                    'resignVotes':{'w':len(self.resign_votes['w']),'b':len(self.resign_votes['b'])},
+                    'myDrawVote':token in self.draw_votes[team],
+                    'myResignVote':token in self.resign_votes[team],
+                    'teamSize':len(self.team_tokens(team)),
+                    'opponentSize':len(self.team_tokens(other))
+                },
+                'note':'Agree on the same legal move, then every teammate confirms.'}
 
     async def broadcast(self):
         self.active=now()
@@ -123,7 +143,7 @@ class Room:
         if self.phase!='lobby':raise ValueError('This game already started.')
         if len(self.players)!=self.capacity or len(self.sockets)!=self.capacity:raise ValueError('Wait for all players to join and connect.')
         if sum(p['team']=='w' for p in self.players.values())!=self.capacity//2:raise ValueError('Teams must be equal.')
-        self.phase='playing';self.proposals.clear();self.active=now()
+        self.phase='playing';self.proposals.clear();self.clear_fair_play_actions();self.active=now()
 
     def proposal(self,token,uci):
         if self.phase!='playing':raise ValueError('No active match.')
@@ -152,7 +172,7 @@ class Room:
         self.round+=1
         self.last_move={'from':to_sq(move[0]),'to':to_sq(move[1]),'promotion':move[2], 'san':san,'uci':mine['uci'],'team':team,'at':now()}
         self.history.append({'ply':self.round,'number':self.game.fullmove-(old_turn==-1),'team':team,'san':san,'uci':mine['uci']})
-        self.proposals.clear();self.terminal=self.game.terminal(self.positions)
+        self.proposals.clear();self.clear_fair_play_actions();self.terminal=self.game.terminal(self.positions)
         if self.terminal:self.phase='ended'
         return 'committed'
 
@@ -167,6 +187,57 @@ class Room:
         team=self.players[token]['team'];p=self.players[token]
         self.chats[team].append({'id':secrets.token_hex(5),'name':p['name'],'person':p['id'],'text':text,'time':now()})
 
+    def offer_draw(self,token):
+        if self.phase!='playing':raise ValueError('No active match.')
+        team=self.players[token]['team']
+        other='b' if team=='w' else 'w'
+        if self.draw_offer and self.draw_offer!=team:raise ValueError('The other team already offered a draw. Use accept draw.')
+        if token in self.draw_votes[team]:
+            self.draw_votes[team].remove(token)
+            if self.draw_offer==team:
+                # Revoking unanimity revokes the offer and opponent acceptances.
+                self.draw_offer=None
+                self.draw_votes={'w':set(),'b':set()}
+                return 'revoked'
+        else:
+            self.draw_votes[team].add(token)
+        if len(self.draw_votes[team])==len(self.team_tokens(team)):
+            self.draw_offer=team
+            self.draw_votes[other].clear()
+        elif not self.draw_votes[team]:
+            self.draw_offer=None
+        return 'offered' if self.draw_offer==team else 'pending'
+
+    def accept_draw(self,token):
+        if self.phase!='playing':raise ValueError('No active match.')
+        team=self.players[token]['team']
+        if not self.draw_offer or self.draw_offer==team:raise ValueError('There is no opponent draw offer to accept.')
+        if token in self.draw_votes[team]:
+            self.draw_votes[team].remove(token)
+        else:
+            self.draw_votes[team].add(token)
+        if len(self.draw_votes[team])==len(self.team_tokens(team)):
+            self.phase='ended'
+            self.terminal=('agreed_draw','Draw agreed by both teams.')
+            self.proposals.clear()
+            return 'accepted'
+        return 'pending'
+
+    def resign(self,token):
+        if self.phase!='playing':raise ValueError('No active match.')
+        team=self.players[token]['team']
+        if token in self.resign_votes[team]:
+            self.resign_votes[team].remove(token)
+        else:
+            self.resign_votes[team].add(token)
+        if len(self.resign_votes[team])==len(self.team_tokens(team)):
+            self.phase='ended'
+            self.terminal=('resignation',('Black' if team=='w' else 'White')+' wins by resignation.')
+            self.proposals.clear()
+            self.draw_offer=None
+            return 'resigned'
+        return 'pending'
+
     def vote_rematch(self,token):
         if self.phase!='ended':raise ValueError('Finish this game first.')
         if token not in self.sockets:raise ValueError('Connect first.')
@@ -174,11 +245,11 @@ class Room:
         else:self.rematch.add(token)
         if len(self.rematch)==self.capacity and len(self.sockets)==self.capacity:
             self.game=Position.from_fen();self.positions=[self.game];self.history=[];self.last_move=None
-            self.round=0;self.phase='playing';self.terminal=None;self.proposals.clear();self.rematch.clear()
+            self.round=0;self.phase='playing';self.terminal=None;self.proposals.clear();self.rematch.clear();self.clear_fair_play_actions()
             self.chats={'w':deque(maxlen=90),'b':deque(maxlen=90)}
 
 
-async def health(request):return web.json_response({'ok':True,'rooms':len(rooms),'version':'1.0.0'})
+async def health(request):return web.json_response({'ok':True,'rooms':len(rooms),'version':'1.1.0'})
 
 async def index(request):return web.FileResponse(BASE/'public'/'index.html')
 
@@ -190,7 +261,7 @@ async def ws_handler(request):
     ws=web.WebSocketResponse(heartbeat=25,max_msg_size=4096)
     await ws.prepare(request)
     current=None;token=None
-    await ws.send_json({'type':'hello','version':'1.0.0'})
+    await ws.send_json({'type':'hello','version':'1.1.0'})
     try:
         async for msg in ws:
             if msg.type!=WSMsgType.TEXT:continue
@@ -227,6 +298,21 @@ async def ws_handler(request):
                     elif kind=='unconfirm':
                         if token in current.proposals:current.proposals[token]['confirmed']=False
                     elif kind=='chat':current.chat(token,data.get('text'))
+                    elif kind=='offer_draw':
+                        out=current.offer_draw(token)
+                        if out=='offered':
+                            for socket in list(current.sockets.values()):
+                                if not socket.closed:await socket.send_json({'type':'notice','message':'Draw offer is now live. The other team can accept it.'})
+                    elif kind=='accept_draw':
+                        out=current.accept_draw(token)
+                        if out=='accepted':
+                            for socket in list(current.sockets.values()):
+                                if not socket.closed:await socket.send_json({'type':'notice','message':'Draw agreed by both teams.'})
+                    elif kind=='resign':
+                        out=current.resign(token)
+                        if out=='resigned':
+                            for socket in list(current.sockets.values()):
+                                if not socket.closed:await socket.send_json({'type':'notice','message':current.terminal[1]})
                     elif kind=='rematch':current.vote_rematch(token)
                     elif kind=='ping':await ws.send_json({'type':'pong','time':now()});continue
                     else:raise ValueError('Unknown action.')
