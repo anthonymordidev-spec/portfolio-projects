@@ -13,6 +13,7 @@ from collections import deque
 from pathlib import Path
 from aiohttp import web, WSMsgType
 from chess_engine import Position, to_sq
+from app_icon import png as app_icon_png
 
 BASE = Path(__file__).parent
 ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
@@ -181,6 +182,10 @@ async def health(request):return web.json_response({'ok':True,'rooms':len(rooms)
 
 async def index(request):return web.FileResponse(BASE/'public'/'index.html')
 
+async def app_icon(request):
+    size=int(request.match_info.get('size') or 192)
+    return web.Response(body=app_icon_png(size),content_type='image/png',headers={'Cache-Control':'public, max-age=86400'})
+
 async def ws_handler(request):
     ws=web.WebSocketResponse(heartbeat=25,max_msg_size=4096)
     await ws.prepare(request)
@@ -252,6 +257,8 @@ def create_app():
     app=web.Application(client_max_size=1024*16)
     app.router.add_get('/api/health',health)
     app.router.add_get('/ws',ws_handler)
+    app.router.add_get('/assets/parley-icon.png',app_icon)
+    app.router.add_get('/assets/parley-icon-{size:192|512}.png',app_icon)
     app.router.add_get('/',index)
     app.router.add_static('/assets/',BASE/'public',show_index=False)
     app.on_startup.append(on_start);app.on_cleanup.append(on_cleanup)

@@ -1,0 +1,26 @@
+{
+  "id": "/",
+  "name": "PARLEY \u2014 Cooperative Chess",
+  "short_name": "PARLEY",
+  "description": "One board. Many minds. One move.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#101612",
+  "theme_color": "#101612",
+  "icons": [
+    {
+      "src": "/assets/parley-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/parley-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
