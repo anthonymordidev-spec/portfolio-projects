@@ -39,6 +39,24 @@
  header{height:46px;padding:0 12px}#room{height:calc(100dvh - 46px);overflow:hidden;padding:7px 10px;gap:6px}.room-strip{height:37px;flex-shrink:0}.room-code{padding:7px 10px;font-size:11px}.room-identity{display:none}.main-grid{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(210px,.9fr);gap:8px;flex:1;min-height:0}.desktop-roominfo{display:none}.game-center{display:grid;grid-template-columns:minmax(220px,1.1fr) minmax(165px,.8fr);grid-template-rows:35px auto;gap:6px;align-items:start;min-height:0}.turn-bar{grid-column:1/-1;height:35px}.board-frame{grid-column:1;grid-row:2;width:min(100%,calc(100dvh - 148px));justify-self:center}.decision{grid-column:2;grid-row:2}.decision-inner{display:block;padding:10px}.decision .action{margin-top:9px;align-items:stretch}.decision .action button{min-width:0;padding:10px;font-size:10px}.proposal-list{padding:6px;gap:4px}.proposal-chip{font-size:9px;padding:4px}.chat-panel{min-height:0;height:100%;max-height:100%;border-radius:12px}.chat-title{padding:9px}.chat-title h3{font-size:12px}.chat-messages{padding:8px}.chat-input-area{padding:8px}.privacy{font-size:8px;padding:8px}.mobile-nav{display:none}
 }
 @media(max-width:370px){header{height:51px}.server-dot{display:none}#room{height:calc(100dvh - 51px)}.room-identity{display:none}.board-frame{width:min(100%,calc(100dvh - 292px))}.decision-inner{padding:9px}.turn-bar{height:38px}.room-strip .right .btn{padding:7px}.square .piece{font-size:8vw}.mobile-nav button{padding:8px}}
+/* iPhone Safari layout repair: scroll the document on the lobby, not a trapped flex child. */
+@media (max-width:760px){
+  html{height:auto;overflow-x:clip;-webkit-text-size-adjust:100%}
+  body{height:auto;min-height:100%;overflow-x:clip;overflow-y:auto;touch-action:pan-y}
+  #app{height:auto;min-height:100dvh}
+  #landing{height:auto;min-height:calc(100dvh - 57px);flex:initial;overflow:visible;overscroll-behavior-y:auto;padding:24px 18px calc(65px + env(safe-area-inset-bottom))}
+  .hero-title{font-size:clamp(40px,10vw,56px)}
+  .hero-steps{margin-top:15px}
+  .lobby-card{overflow:visible}
+  #room{overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  body.room-mode{height:100dvh;min-height:0;overflow:hidden}
+  body.room-mode #app{height:100dvh;min-height:0}
+  button,.square,.icon-btn{touch-action:manipulation}
+  input,textarea{touch-action:pan-y}
+}
+@media (max-width:370px){
+  #landing{min-height:calc(100dvh - 51px)}
+}
 </style></head>
 <body><div id="app">
 <header><a class="wordmark" href="/" aria-label="Parley home"><span class="brand-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h18M6 17h12M7 17 8 8l4-5 4 5 1 9M10 12h4"/></svg></span>PARLEY<span class="brand-accent">.</span></a><div class="header-right"><span class="server-dot" id="connection"><i></i><span>REAL-TIME CHESS</span></span><button id="exitBtn" class="head-btn hidden">Leave room</button></div></header>
@@ -87,7 +105,7 @@ function connect(action,extra={}){
  socket.addEventListener('open',()=>{connectionAttempts=0;connectionState(true);const req={type:action,token,name:localStorage.getItem('parley-name')||'Player',...extra};socket.send(JSON.stringify(req))});
  socket.addEventListener('message',e=>{
   let m;try{m=JSON.parse(e.data)}catch{return}
-  if(m.type==='joined'){code=m.code;room=code;history.replaceState(null,'',`?room=${code}`);$('landing').classList.add('hidden');$('room').classList.remove('hidden');$('exitBtn').classList.remove('hidden');$('roomCode').textContent=code}
+  if(m.type==='joined'){document.body.classList.add('room-mode');code=m.code;room=code;history.replaceState(null,'',`?room=${code}`);$('landing').classList.add('hidden');$('room').classList.remove('hidden');$('exitBtn').classList.remove('hidden');$('roomCode').textContent=code}
   if(m.type==='state'){lastState=m;me=m.me;room=m.room;proposed=m.proposals?.find(p=>p.id===me.id)||null;render(m)}
   if(m.type==='error'){toast(m.message,true);if(!code && action==='join'){clearTimeout(connectionTimer);socket.close();connectionState(false)}}
   if(m.type==='notice')toast(m.message,true);
@@ -100,7 +118,7 @@ $('roomSizes').addEventListener('click',e=>{let el=e.target.closest('[data-size]
 $('createBtn').onclick=()=>{if(!getName())return;connect('create',{capacity})};
 $('joinBtn').onclick=()=>{if(!getName())return;const c=$('joinCode').value.trim().toUpperCase();if(!/^[A-Z2-9]{6}$/.test(c)){toast('Enter your six-character room code.',true);return}connect('join',{code:c})};
 $('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('joinBtn').click()});
-$('exitBtn').onclick=()=>{if(!confirm('Leave this room? You can rejoin it using the invite link.'))return;clearTimeout(connectionTimer);if(ws){ws.onclose=null;ws.close()}ws=null;code=null;room=null;me=null;lastState=null;history.replaceState(null,'',location.pathname);$('room').classList.add('hidden');$('landing').classList.remove('hidden');$('exitBtn').classList.add('hidden');$('chatPanel').classList.remove('open');connectionState(false)};
+$('exitBtn').onclick=()=>{if(!confirm('Leave this room? You can rejoin it using the invite link.'))return;clearTimeout(connectionTimer);if(ws){ws.onclose=null;ws.close()}ws=null;code=null;room=null;me=null;lastState=null;history.replaceState(null,'',location.pathname);$('room').classList.add('hidden');$('landing').classList.remove('hidden');document.body.classList.remove('room-mode');window.scrollTo(0,0);$('exitBtn').classList.add('hidden');$('chatPanel').classList.remove('open');connectionState(false)};
 $('roomCode').onclick=()=>copyText(room||'');$('shareBtn').onclick=()=>copyText(`${location.origin}/?room=${room}`);
 async function copyText(text){try{await navigator.clipboard.writeText(text);toast('Copied to clipboard.')}catch{toast(text)}}
 $('startBtn').onclick=()=>send('start');
@@ -162,6 +180,7 @@ function renderHistory(s){const list=$('history');list.replaceChildren();const r
 let chatLast='';
 function renderChat(s){const messages=$('chatMessages');const sig=(s.chats||[]).map(x=>x.id).join(',');if(sig===chatLast)return;chatLast=sig;messages.replaceChildren();if(!(s.chats||[]).length){const el=document.createElement('div');el.className='chat-empty';el.innerHTML='<div class="bubble-icon">✦</div><strong>Make the call together.</strong><br>Discuss strategies here before you confirm a move.';messages.append(el);return}s.chats.forEach(msg=>{const mine=msg.person===s.me.id;const div=document.createElement('div');div.className='chat-item'+(mine?' mine':'');div.innerHTML=`<div class="who">${escapeHTML(mine?'You':msg.name)}</div><div class="bubble"></div>`;div.querySelector('.bubble').textContent=msg.text;messages.append(div)});messages.scrollTop=messages.scrollHeight;if(!document.querySelector('.chat-panel.open')){unread++;$('chatUnread').textContent=unread>0?' · '+unread:''}}
 function render(s){
+ document.body.classList.add('room-mode');
  $('landing').classList.add('hidden');$('room').classList.remove('hidden');$('exitBtn').classList.remove('hidden');$('roomCode').textContent=s.room;
  const white=s.me.team==='w';$('roomLabel').textContent=(white?'White':'Black')+' team';$('roomSubtitle').textContent=`${s.capacity/2} vs ${s.capacity/2} · ${s.phase==='lobby'?'Waiting room':s.phase==='playing'?'Live match':'Game complete'}`;
  renderRoster(s);renderHistory(s);if(chatMode==='chat'){$('chatTeam').textContent=(white?'White':'Black')+' team chat';renderChat(s)} else renderPanel(chatMode,s);
@@ -194,6 +213,10 @@ function renderDecision(s){
 }
 function playMoveSound(){try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;const ctx=playMoveSound.ctx||(playMoveSound.ctx=new Audio());if(ctx.state==='suspended')ctx.resume();const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(490,ctx.currentTime);o.frequency.exponentialRampToValueAtTime(240,ctx.currentTime+.075);g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.06,ctx.currentTime+.004);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.12);o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+.13)}catch{}}
 // Resume a room when refreshing or following an invitation with stored identity.
+// Avoid accidental Safari page zoom while allowing single-finger scrolling and editable inputs.
+document.addEventListener('gesturestart',event=>event.preventDefault(),{passive:false});
+document.addEventListener('gesturechange',event=>event.preventDefault(),{passive:false});
+document.addEventListener('touchmove',event=>{if(event.touches.length>1)event.preventDefault()},{passive:false});
 window.addEventListener('online',()=>{if(code&&(!ws||ws.readyState>1)){clearTimeout(connectionTimer);connect('join',{code})}});
 window.addEventListener('beforeunload',()=>{if(ws)ws.onclose=null});
 // Server-supplied game state is always authoritative; no browser action directly changes FEN.
